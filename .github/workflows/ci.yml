@@ -1,0 +1,35 @@
+
+name: Playwright Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  playwright-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pytest-asyncio pytest-playwright playwright allure-pytest
+          playwright install --with-deps
+
+      - name: Run tests
+        env:
+          ENV: qa
+          HEADLESS: "true"
+        run: pytest --alluredir=allure-results
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results
+          path: allure-results

@@ -1,0 +1,32 @@
+[32mINFO    [0m fixtures.auth_fixtures:auth_fixtures.py:17 Auth disabled (--use-auth not provided). Running anonymous session.
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:44 ========== Browser Session Setup ==========
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:45 Browser type       : chromium
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:46 Headless mode      : False
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:47 SlowMo             : 50
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:48 Channel            : chrome
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:49 Using CDP          : False
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:63 Launching new browser instance...
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:70 New browser launched successfully ✅
+[32mINFO    [0m fixtures.context_fixtures:context_fixtures.py:18 --- Context setup started [Worker: main] ---
+[32mINFO    [0m fixtures.context_fixtures:context_fixtures.py:19 Capture HAR    : False
+[32mINFO    [0m fixtures.context_fixtures:context_fixtures.py:20 Capture Trace  : False
+[32mINFO    [0m fixtures.context_fixtures:context_fixtures.py:21 Capture Video  : False
+[32mINFO    [0m fixtures.context_fixtures:context_fixtures.py:22 Auth Enabled   : False
+[32mINFO    [0m fixtures.context_fixtures:context_fixtures.py:48 No storage_state — running anonymous session
+[32mINFO    [0m fixtures.context_fixtures:context_fixtures.py:52 Browser context created successfully
+[32mINFO    [0m fixtures.context_fixtures:context_fixtures.py:63 Cookie consent injected
+[32mINFO    [0m fixtures.page_fixtures:page_fixtures.py:10 Creating new page...
+[32mINFO    [0m fixtures.page_fixtures:page_fixtures.py:12 New page created successfully
+[32mINFO    [0m fixtures.page_fixtures:page_fixtures.py:15 Navigating to base URL: https://www.mercari.com/
+[32mINFO    [0m test_mercari_home:test_mercari_home.py:11 Launching Home page
+[32mINFO    [0m HomePage:base_page.py:14 Wait for Visible → #truste-consent-buttons
+[32mINFO    [0m HomePage:base_page.py:14 Click → #truste-consent-button
+[32mINFO    [0m HomePage:base_page.py:14 Hover → h6[data-testid='CategoryNavL0Item']:has-text('Electronics')
+[32mINFO    [0m HomePage:base_page.py:14 Click → role=link[name=/Electronics/]
+[32mINFO    [0m fixtures.page_fixtures:page_fixtures.py:38 Test PASSED: test_verify_home_page
+[32mINFO    [0m fixtures.page_fixtures:page_fixtures.py:45 Page closed successfully
+[32mINFO    [0m fixtures.context_fixtures:context_fixtures.py:80 Browser context closed [Worker: main]
+[32mINFO    [0m fixtures.context_fixtures:context_fixtures.py:81 --- Context teardown completed [Worker: main] ---
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:81 Closing browser session...
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:83 Browser closed successfully 🧹
+[32mINFO    [0m fixtures.browser_fixtures:browser_fixtures.py:87 ========== Browser Session Finished ==========

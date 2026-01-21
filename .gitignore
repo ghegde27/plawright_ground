@@ -1,0 +1,78 @@
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+.env/
+.venv/
+venv/
+ENV/
+env/
+
+# ========================
+# Environment variables
+# ========================
+.env
+
+# ========================
+# Playwright
+# ========================
+auth_*.json
+*.har
+*.zip
+playwright-report/
+test-results/
+
+# ========================
+# Pytest / Cache
+# ========================
+.pytest_cache/
+.cache/
+
+# ========================
+# Allure Reports
+# ========================
+allure-results/
+allure-report/
+
+# ========================
+# Logs
+# ========================
+logs/
+*.log
+
+# ========================
+# Node (if Playwright installs browsers)
+# ========================
+node_modules/
+package-lock.json
+
+# ========================
+# OS Files
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# IDE
+# ========================
+.vscode/
+.idea/
+*.iml
+
+# ========================
+# Coverage
+# ========================
+.coverage
+htmlcov/
+
+# ========================
+# Temporary files
+# ========================
+*.tmp
+*.swp
+*.swo

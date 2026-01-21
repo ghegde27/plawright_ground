@@ -1,0 +1,32 @@
+2026-01-21 20:04:25 | INFO | fixtures.auth_fixtures | Auth disabled (--use-auth not provided). Running anonymous session.
+2026-01-21 20:04:25 | INFO | fixtures.browser_fixtures | ========== Browser Session Setup ==========
+2026-01-21 20:04:25 | INFO | fixtures.browser_fixtures | Browser type       : chromium
+2026-01-21 20:04:25 | INFO | fixtures.browser_fixtures | Headless mode      : False
+2026-01-21 20:04:25 | INFO | fixtures.browser_fixtures | SlowMo             : 50
+2026-01-21 20:04:25 | INFO | fixtures.browser_fixtures | Channel            : chrome
+2026-01-21 20:04:25 | INFO | fixtures.browser_fixtures | Using CDP          : False
+2026-01-21 20:04:25 | INFO | fixtures.browser_fixtures | Launching new browser instance...
+2026-01-21 20:04:26 | INFO | fixtures.browser_fixtures | New browser launched successfully ✅
+2026-01-21 20:04:26 | INFO | fixtures.context_fixtures | --- Context setup started [Worker: main] ---
+2026-01-21 20:04:26 | INFO | fixtures.context_fixtures | Capture HAR    : False
+2026-01-21 20:04:26 | INFO | fixtures.context_fixtures | Capture Trace  : False
+2026-01-21 20:04:26 | INFO | fixtures.context_fixtures | Capture Video  : False
+2026-01-21 20:04:26 | INFO | fixtures.context_fixtures | Auth Enabled   : False
+2026-01-21 20:04:26 | INFO | fixtures.context_fixtures | No storage_state — running anonymous session
+2026-01-21 20:04:26 | INFO | fixtures.context_fixtures | Browser context created successfully
+2026-01-21 20:04:26 | INFO | fixtures.context_fixtures | Cookie consent injected
+2026-01-21 20:04:26 | INFO | fixtures.page_fixtures | Creating new page...
+2026-01-21 20:04:27 | INFO | fixtures.page_fixtures | New page created successfully
+2026-01-21 20:04:27 | INFO | fixtures.page_fixtures | Navigating to base URL: https://www.mercari.com/
+2026-01-21 20:04:46 | INFO | test_mercari_home | Launching Home page
+2026-01-21 20:04:46 | INFO | HomePage | Wait for Visible → #truste-consent-buttons
+2026-01-21 20:04:46 | INFO | HomePage | Click → #truste-consent-button
+2026-01-21 20:04:47 | INFO | HomePage | Hover → h6[data-testid='CategoryNavL0Item']:has-text('Electronics')
+2026-01-21 20:04:57 | INFO | HomePage | Click → role=link[name=/Electronics/]
+2026-01-21 20:05:07 | INFO | fixtures.page_fixtures | Test PASSED: test_verify_home_page
+2026-01-21 20:05:07 | INFO | fixtures.page_fixtures | Page closed successfully
+2026-01-21 20:05:07 | INFO | fixtures.context_fixtures | Browser context closed [Worker: main]
+2026-01-21 20:05:07 | INFO | fixtures.context_fixtures | --- Context teardown completed [Worker: main] ---
+2026-01-21 20:05:07 | INFO | fixtures.browser_fixtures | Closing browser session...
+2026-01-21 20:05:07 | INFO | fixtures.browser_fixtures | Browser closed successfully 🧹
+2026-01-21 20:05:07 | INFO | fixtures.browser_fixtures | ========== Browser Session Finished ==========

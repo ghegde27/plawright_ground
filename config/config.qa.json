@@ -1,0 +1,17 @@
+
+{
+  "base_url": "",
+  "capture_screenshot": true,
+  "capture_trace": false,
+  "capture_har": false,
+  "capture_video": false,
+    "browser": {
+    "type": "chromium",
+    "headless": false,
+    "slowMo": 50,
+    "channel": "chrome",
+    "viewport": { "width": 1280, "height": 720 },
+    "args": ["--disable-blink-features=AutomationControlled"],
+    "permissions": ["clipboard-read", "clipboard-write"]
+  }
+}
