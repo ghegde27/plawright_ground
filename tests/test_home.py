@@ -10,4 +10,7 @@ log = Logger.get_logger(__name__)
 @pytest.mark.asyncio
 @allure.feature("Homepage")
 async def test_verify_home_page(page):
-   pass
+    home = HomePage(page)
+    await home.open_link_in_new_tab()
+
+

@@ -1,244 +1,296 @@
 import asyncio
 
-from core.logger import Logger
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError, Locator
+
 from core.locator_helper import LocatorHelper as LH
-from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+from core.locator_report import LocatorReport
+from core.logger import Logger
+from playwright_client.mcp_client import (
+    register_page_locators,
+    get_locator,
+    heal_locator
+)
 
 
 class BasePage:
+    _registered_pages = set()   # ✅ must be a set, not None
+    page_name = None
+
+    # -------------------------
+    # Auto-register POM locators in MCP
+    # -------------------------
+    def __init_subclass__(cls):
+        if not cls.page_name:
+            return
+
+        # Prevent duplicate registration per session
+        if cls.page_name in BasePage._registered_pages:
+            return
+
+        BasePage._registered_pages.add(cls.page_name)
+
+        locators = []
+        for attr, value in cls.__dict__.items():
+            if attr.isupper() and isinstance(value, str):
+                locators.append({
+                    "element_name": attr,
+                    "primary_locator": value
+                })
+
+        if locators:
+            register_page_locators(cls.page_name, locators)
+
+    # -------------------------
+    # Init
+    # -------------------------
     def __init__(self, page):
         self.page = page
         self.log = Logger.get_logger(self.__class__.__name__)
 
-    async def _log(self, message: str):
-        self.log.info(message)
+    async def _log(self, msg: str):
+        self.log.info(msg)
 
-    # -------------------------------------------
-    # INTERNAL UTILITIES
-    # -------------------------------------------
-
+    # -------------------------
+    # Retry helper
+    # -------------------------
     async def _retry(self, func, retries=3, delay=1, action=""):
-        """Retry wrapper for flaky operations."""
         for attempt in range(1, retries + 1):
             try:
-                await func()
-                return
+                return await func()
             except PlaywrightTimeoutError:
-                await self._log(f"Retry {attempt}/{retries} failed for: {action}")
+                await self._log(f"Retry {attempt}/{retries} failed → {action}")
                 if attempt == retries:
                     raise
                 await asyncio.sleep(delay)
 
-    # -------------------------------------------
-    # BASIC ACTIONS WITH AUTO-WAIT + RETRY
-    # -------------------------------------------
+    # -------------------------
+    # DOM Extractor (for MCP healing)
+    # -------------------------
+    async def extract_dom(self):
+        return await self.page.evaluate("""
+        () => {
+          function simplify(el) {
+            return {
+              tag: el.tagName.toLowerCase(),
+              text: el.innerText ? el.innerText.trim().slice(0,80) : null,
+              children: Array.from(el.children).slice(0,5).map(simplify)
+            }
+          }
+          return simplify(document.body)
+        }
+        """)
 
-    async def click(self, locator: str, retries=3, timeout=5000):
-        """Smart click with auto-wait, logging, retry."""
+    # ======================================================
+    # CLICK FUNCTIONS
+    # ======================================================
+
+    async def click_by_selector(self, selector: str = None, element_name: str = None,
+                                retries=3, timeout=5000):
+        """
+        Primary = selector from POM
+        Fallback = locator from MCP DB
+        Healing only if both fail
+        """
+
+        page_name = self.page_name
+
+        if not selector and not element_name:
+            raise ValueError("Selector or element_name required")
+
+        # 1️⃣ Try POM selector first
+        if selector:
+            try:
+                await self._log(f"Click → POM selector: {selector}")
+
+                async def action():
+                    await self.page.wait_for_selector(selector, timeout=timeout)
+                    await self.page.locator(selector).click()
+
+                await self._retry(action, retries=retries, action=f"click {selector}")
+                return
+
+            except Exception:
+                await self._log("POM locator failed → trying DB fallback")
+
+        # 2️⃣ Try MCP stored locator
+        stored_selector = None
+        if page_name and element_name:
+            stored_selector = get_locator(page_name, element_name)
+
+        if stored_selector:
+            try:
+                await self._log(f"Click → DB selector: {stored_selector}")
+
+                async def db_action():
+                    await self.page.wait_for_selector(stored_selector, timeout=timeout)
+                    await self.page.locator(stored_selector).click()
+
+                await self._retry(db_action, retries=retries, action=f"click {stored_selector}")
+
+                # Record outdated POM locator
+                LocatorReport.mark_outdated(page_name, element_name, selector, stored_selector)
+                return
+
+            except Exception:
+                await self._log("DB locator also failed → invoking healer")
+
+        # 3️⃣ Heal via MCP
+        if page_name and element_name:
+            dom = await self.extract_dom()
+
+            new_selector = heal_locator(
+                page_name,
+                element_name,
+                dom,
+                f"Find clickable element for '{element_name}'"
+            )
+
+            await self._log(f"Healed selector → {new_selector}")
+
+            await self.page.wait_for_selector(new_selector, timeout=timeout)
+            await self.page.locator(new_selector).click()
+
+            LocatorReport.mark_outdated(page_name, element_name, selector, new_selector)
+            return
+
+        raise Exception("All locator strategies failed")
+
+    async def click_by_locator(self, locator: Locator, retries=3, timeout=5000):
+        """Click using Playwright Locator object"""
 
         async def action():
-            await self.page.wait_for_selector(locator, timeout=timeout)
-            await self.page.locator(locator).click()
+            await locator.wait_for(timeout=timeout)
+            await locator.click()
 
-        await self._log(f"Click → {locator}")
-        await self._retry(action, retries=retries, action=f"click {locator}")
+        await self._log("Click → Locator object")
+        await self._retry(action, retries=retries, action="click_by_locator")
 
-    async def fill(self, locator: str, value: str, retries=3, timeout=5000):
-        """Smart fill with auto-wait, logging, retry."""
+    async def click_any(self, target, element_name=None, retries=3, timeout=5000):
+        """Accepts selector string or Playwright Locator"""
 
+        if isinstance(target, str):
+            await self.click_by_selector(target, element_name, retries, timeout)
+        elif isinstance(target, Locator):
+            await self.click_by_locator(target, retries, timeout)
+        else:
+            raise ValueError("Target must be selector string or Locator")
+
+    # ======================================================
+    # FILL FUNCTION
+    # ======================================================
+
+    async def fill_by_selector(self, selector: str = None, value: str = "",
+                               element_name: str = None, retries=3, timeout=5000):
+
+        page_name = self.page_name
+
+        if not selector and not element_name:
+            raise ValueError("Selector or element_name required")
+
+        # Try POM selector first
+        if selector:
+            try:
+                async def action():
+                    await self.page.wait_for_selector(selector, timeout=timeout)
+                    await self.page.locator(selector).fill(value)
+
+                await self._retry(action, retries=retries, action=f"fill {selector}")
+                return
+            except Exception:
+                await self._log("POM fill failed → trying DB fallback")
+
+        # Try DB locator
+        stored = None
+        if page_name and element_name:
+            stored = get_locator(page_name, element_name)
+
+        if stored:
+            await self.page.wait_for_selector(stored, timeout=timeout)
+            await self.page.locator(stored).fill(value)
+
+            LocatorReport.mark_outdated(page_name, element_name, selector, stored)
+            return
+
+        # Heal if needed
+        if page_name and element_name:
+            dom = await self.extract_dom()
+            new_selector = heal_locator(
+                page_name,
+                element_name,
+                dom,
+                f"Find input field for '{element_name}'"
+            )
+
+            await self.page.wait_for_selector(new_selector, timeout=timeout)
+            await self.page.locator(new_selector).fill(value)
+
+            LocatorReport.mark_outdated(page_name, element_name, selector, new_selector)
+            return
+
+        raise Exception("All fill locator strategies failed")
+
+    # ======================================================
+    # ROLE-BASED CLICK
+    # ======================================================
+
+    async def click_role(self, role: str, name: str = None, exact=False, **kwargs):
+        selector = LH.by_role(role=role, name=name, exact=exact, **kwargs)
+        await self.click_by_selector(selector)
+
+    # ======================================================
+    # HOVER
+    # ======================================================
+
+    async def hover(self, role: str, name: str, retries=3, timeout=5000):
         async def action():
-            await self.page.wait_for_selector(locator, timeout=timeout)
-            await self.page.locator(locator).fill(value)
+            locator = self.page.get_by_role(role, name=name, exact=True)
+            await locator.wait_for(timeout=timeout)
+            await locator.hover()
 
-        await self._log(f"Fill → {locator} | Value: {value}")
-        await self._retry(action, retries=retries, action=f"fill {locator}")
+        await self._log(f"Hover → role={role}, name={name}")
+        await self._retry(action, retries=retries, action="hover")
 
-    async def type(self, locator: str, value: str, delay=50, retries=3, timeout=5000):
-        """Smart type with keystroke delay + retry."""
+    # ======================================================
+    # BASIC UTILS
+    # ======================================================
 
-        async def action():
-            await self.page.wait_for_selector(locator, timeout=timeout)
-            await self.page.locator(locator).type(value, delay=delay)
+    async def get_text(self, selector: str):
+        return await self.page.locator(selector).inner_text()
 
-        await self._log(f"Type → {locator} | Value: {value}")
-        await self._retry(action, retries=retries, action=f"type {locator}")
+    async def wait_for_visible(self, selector: str, timeout=5000):
+        await self.page.wait_for_selector(selector, timeout=timeout, state="visible")
 
-    async def get_text(self, locator: str, retries=2):
-        """Get text from element."""
-
-        async def action():
-            return await self.page.locator(locator).inner_text()
-
-        await self._log(f"Get Text → {locator}")
-        return await self._retry(action, retries=retries, action=f"get_text {locator}")
-
-    async def wait_for_visible(self, locator: str, timeout=5000):
-        await self._log(f"Wait for Visible → {locator}")
-        await self.page.wait_for_selector(locator, timeout=timeout, state="visible")
-
-    async def wait_for_hidden(self, locator: str, timeout=5000):
-        await self._log(f"Wait for Hidden → {locator}")
-        await self.page.wait_for_selector(locator, timeout=timeout, state="hidden")
-
-    async def is_visible(self, locator: str):
-        return await self.page.locator(locator).is_visible()
+    async def wait_for_hidden(self, selector: str, timeout=5000):
+        await self.page.wait_for_selector(selector, timeout=timeout, state="hidden")
 
     async def navigate(self, url: str):
         await self._log(f"Navigate → {url}")
         await self.page.goto(url)
 
-    # -------------------------------------------
-    # ROLE-BASED CLICK / FILL (using LocatorHelper)
-    # -------------------------------------------
+    async def wait_for_timeout_before_next(self, timeout=1000):
+        await self.page.wait_for_timeout(timeout)
 
-    async def click_role(
-            self,
-            role: str,
-            name: str = None,
-            exact: bool = False,
-            checked: bool = None,
-            disabled: bool = None,
-            expanded: bool = None,
-            include_hidden: bool = False,
-            level: int = None,
-            pressed: bool = None,
-            selected: bool = None,
-    ):
-        locator = LH.by_role(
-            role=role,
-            name=name,
-            exact=exact,
-            checked=checked,
-            disabled=disabled,
-            expanded=expanded,
-            include_hidden=include_hidden,
-            level=level,
-            pressed=pressed,
-            selected=selected,
-        )
-        await self.click(locator)
+    # ======================================================
+    # WINDOW / FRAME HELPERS
+    # ======================================================
 
-    # Add this inside BasePage class
+    async def handle_new_window(self, trigger_action):
+        try:
+            async with self.page.context.expect_page() as p_info:
+                await trigger_action()
+            new_page = await p_info.value
+            await new_page.wait_for_load_state()
+            await self._log(f"New window → {await new_page.title()}")
+            return new_page
+        except:
+            await self._log("No new window detected")
+            return self.page
 
-    async def hover(self, locator: str, retries=3, timeout=5000):
-        """Smart hover with auto-wait, logging, retry."""
-        async def action():
-            await self.page.wait_for_selector(locator, timeout=timeout)
-            await self.page.locator(locator).hover()
-
-        await self._log(f"Hover → {locator}")
-        await self._retry(action, retries=retries, action=f"hover {locator}")
-
-    async def wait_for_timeout_before_next(self, timeout=10):
-        await self.page.wait_for_timeout(timeout=timeout)
-
-
-    # -----------------------------
-#  WINDOW HANDLING
-# -----------------------------
-
-async def handle_new_window(self, trigger_action):
-    """
-    Waits for a new window/tab created by any action.
-    Example: await handle_new_window(lambda: self.click(selector))
-    """
-    async with self.page.context.expect_page() as p_info:
-        await trigger_action()
-    new_page = await p_info.value
-    await self._log(f"New window detected: {await new_page.title()}")
-    return new_page
-
-
-async def switch_to_window(self, title=None, url_contains=None, index=None):
-    """
-    Switch to a specific window by title, URL, or index.
-    """
-    pages = self.page.context.pages
-    await self._log(f"Available windows: {[await p.title() for p in pages]}")
-
-    # Switch by index
-    if index is not None:
-        await pages[index].bring_to_front()
-        await self._log(f"Switched to window index: {index}")
-        return pages[index]
-
-    # Switch by title
-    if title:
-        for p in pages:
-            if title in await p.title():
-                await p.bring_to_front()
-                await self._log(f"Switched to window with title: {await p.title()}")
-                return p
-
-    # Switch by URL
-    if url_contains:
-        for p in pages:
-            if url_contains in p.url:
-                await p.bring_to_front()
-                await self._log(f"Switched to window with url containing: {url_contains}")
-                return p
-
-    raise Exception("Window not found!")
-
-
-async def close_other_windows(self):
-    """
-    Closes all windows except the first one.
-    """
-    pages = self.page.context.pages
-    main = pages[0]
-
-    for p in pages[1:]:
-        await p.close()
-
-    await main.bring_to_front()
-    await self._log("Closed all other windows and returned to main window.")
-    return main
-
-
-# -----------------------------
-#  POPUP HANDLING (JS POPUPS)
-# -----------------------------
-async def handle_popup(self, trigger_action):
-    """
-    Handles popup windows (window.open, JS popups).
-    """
-    async with self.page.expect_popup() as popup_info:
-        await trigger_action()
-
-    popup = await popup_info.value
-    await self._log(f"Popup opened with title: {await popup.title()}")
-    return popup
-
-
-# -----------------------------
-#  FRAME HANDLING
-# -----------------------------
-async def switch_to_frame(self, selector=None, index=None, name=None):
-    """
-    Switch inside an iframe by selector, name, or index.
-    """
-    if selector:
-        frame = self.page.frame_locator(selector)
-        await self._log(f"Switched to frame: {selector}")
-        return frame
-
-    if name:
-        frame = self.page.frame(name=name)
-        await self._log(f"Switched to frame by name: {name}")
-        return frame
-
-    if index is not None:
-        frame = self.page.frames[index]
-        await self._log(f"Switched to frame by index: {index}")
-        return frame
-
-    raise Exception("Frame selector/name/index required.")
-
-
-async def switch_to_main_frame(self):
-    """
-    Switch back to the main document frame.
-    """
-    await self._log("Switching to main frame.")
-    return self.page.main_frame
+    async def switch_to_frame(self, selector=None, index=None, name=None):
+        if selector:
+            return self.page.frame_locator(selector)
+        if name:
+            return self.page.frame(name=name)
+        if index is not None:
+            return self.page.frames[index]
+        raise Exception("Frame selector/name/index required")

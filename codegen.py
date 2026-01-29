@@ -9,7 +9,7 @@ with sync_playwright() as p:
 
     context = browser.new_context()
     page = context.new_page()
-    page.goto("https://www.swiggy.com")
+    page.goto("https://www.flipkart.com/")
 
     print("Inspector starting... perform actions in the browser.")
     page.pause()  # <-- Open full inspector (codegen UI)
