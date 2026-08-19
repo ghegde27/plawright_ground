@@ -1,16 +1,18 @@
-import pytest
 import allure
+import pytest
 
 from core.logger import Logger
-from pages.home_page import HomePage
 
 log = Logger.get_logger(__name__)
 
 
-@pytest.mark.asyncio
+@pytest.mark.home
 @allure.feature("Homepage")
-async def test_verify_home_page(page):
-    home = HomePage(page)
-    await home.open_link_in_new_tab()
+def test_verify_home_page(pages):
 
+    log.info("Started Home page tests")
 
+    with allure.step("Navigate to Lab Tests"):
+        pages.home.move_to_lab_test()
+
+# HomePage().searchResults(SearchResultsPage).selctProduct(ProductDetailsPage).review(ReviewPage)
