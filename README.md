@@ -1,8 +1,8 @@
 # Playwright Pytest Automation Framework
 
-A scalable Playwright + Pytest (Async) automation framework supporting:
+A scalable Playwright + Pytest automation framework supporting:
 
-- UI automation with Playwright (async)
+- UI automation with Playwright sync API
 - Config-driven environment setup
 - Optional authentication reuse (storage state)
 - CDP attachment to existing browser
@@ -16,8 +16,8 @@ A scalable Playwright + Pytest (Async) automation framework supporting:
 ## Tech Stack
 
 - Python 3.9+
-- Playwright (Async API)
-- Pytest + pytest-asyncio
+- Playwright (Sync API)
+- Pytest
 - Allure Reports
 - Python-dotenv
 - Custom Logging
@@ -168,11 +168,9 @@ logs/automation.log
 
 ## Parallel Execution
 
-Use Playwright-native workers:
+Use pytest-xdist workers:
 
-PLAYWRIGHT_WORKERS=4 pytest
-
-(pytest-xdist is intentionally avoided for async stability)
+pytest -n 4
 
 ---
 

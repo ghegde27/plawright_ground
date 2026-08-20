@@ -5,11 +5,10 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-*.pyc
-*.toml
-*.lock
 *.egg-info/
 .eggs/
+
+# Virtual environments
 .env/
 .venv/
 venv/
@@ -20,13 +19,13 @@ env/
 # Environment variables
 # ========================
 .env
+.env.*
 
 # ========================
 # Playwright
 # ========================
 auth_*.json
 *.har
-*.zip
 playwright-report/
 test-results/
 
@@ -49,10 +48,9 @@ logs/
 *.log
 
 # ========================
-# Node (if Playwright installs browsers)
+# Node
 # ========================
 node_modules/
-package-lock.json
 
 # ========================
 # OS Files
@@ -71,6 +69,7 @@ Thumbs.db
 # Coverage
 # ========================
 .coverage
+.coverage.*
 htmlcov/
 
 # ========================
@@ -79,16 +78,3 @@ htmlcov/
 *.tmp
 *.swp
 *.swo
-
-# OS junk
-.DS_Store
-Thumbs.db
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-
-# IDE
-.idea/
-.vscode/

@@ -1,11 +1,13 @@
 AUTH_CONFIG = {
-    "linkedin": {
-        "login_url": "https://www.linkedin.com/login",
+    "moneycontrol": {
+        "login_url": "https://www.moneycontrol.com/login",
         "username_selector": "#username",
         "password_selector": "#password",
         "submit_selector": "button[type=submit]",
         "success_url": "**/feed",
-        "storage_file": "auth_linkedin.json"
+        "storage_file": "login_mc.json",
+        "validate_url": "https://www.moneycontrol.com/portfolio-management/user/update_profile",
+        "validate_selector": ".span.username_txt"
     },
 
     "github": {

@@ -1,14 +1,10 @@
-from playwright.sync_api import Page, expect
+from playwright.sync_api import expect
 
 from core.base_page import BasePage
 
 
 class HomePage(BasePage):
-
     page_name = "home"
-
-    def __init__(self, page: Page):
-        super().__init__(page)
 
     def search_objects(
             self,
@@ -66,9 +62,8 @@ class HomePage(BasePage):
 
     def move_to_lab_test(self):
 
-        self.locator(
-            "lab_tests"
-        ).first.hover()
+        self.hover(
+            "lab_tests")
 
         self.click(
             "all_tests"

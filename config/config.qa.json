@@ -1,5 +1,5 @@
 {
-  "base_url": "https://www.flipkart.com/",
+  "base_url": "https://pharmeasy.in/",
   "capture_screenshot": true,
   "capture_trace": false,
   "capture_har": false,
@@ -31,5 +31,5 @@
     "latitude": 12.9716,
     "longitude": 77.5946
   },
-  "inject_cookie_consent": true
+  "inject_cookie_consent": false
 }
