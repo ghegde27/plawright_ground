@@ -1,0 +1,52 @@
+{
+  "search_trigger": {
+    "strategy": "text",
+    "value": "Search for ",
+    "options": {},
+    "description": "Search bar trigger"
+  },
+  "search_box": {
+    "strategy": "role",
+    "value": "textbox",
+    "options": {
+      "name": "Search medicines/Healthcare"
+    },
+    "description": "Product search input"
+  },
+  "upload_link": {
+    "strategy": "role",
+    "value": "link",
+    "options": {
+      "name": "Upload"
+    },
+    "description": "Upload prescription link"
+  },
+  "upload_button": {
+    "strategy": "alt_text",
+    "value": "upload",
+    "options": {},
+    "description": "Upload button"
+  },
+  "lab_tests": {
+    "strategy": "role",
+    "value": "link",
+    "options": {
+      "name": "Lab Tests1"
+    },
+    "description": "Lab Tests navigation link"
+  },
+  "all_tests": {
+    "strategy": "role",
+    "value": "link",
+    "options": {
+      "name": "All Tests"
+    },
+    "description": "All Tests link"
+  },
+  "typeahead_results": {
+    "strategy": "css",
+    "value": "div[role='button']:has(span)",
+    "options": {},
+    "description": "Typeahead search results"
+  }
+}
