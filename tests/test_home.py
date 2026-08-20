@@ -9,7 +9,6 @@ log = Logger.get_logger(__name__)
 @pytest.mark.home
 @allure.feature("Homepage")
 def test_verify_home_page(pages):
-
     log.info("Started Home page tests")
 
     with allure.step("Navigate to Lab Tests"):
