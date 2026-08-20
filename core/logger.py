@@ -1,6 +1,6 @@
 import logging
-from logging.handlers import RotatingFileHandler
 import os
+from logging.handlers import RotatingFileHandler
 
 
 class Logger:
@@ -38,7 +38,6 @@ class Logger:
             log_path,
             maxBytes=2 * 1024 * 1024,  # 2 MB
             backupCount=5,
-            mode='w'
         )
         file_handler.setFormatter(formatter)
         file_handler.setLevel(level)

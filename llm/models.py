@@ -7,15 +7,15 @@ class SupportedModel(str, Enum):
     GPT_5_5 = "gpt-5.5"
     CLAUDE_SONNET = "claude-sonnet-4"
     GEMINI_PRO = "gemini-2.5-pro"
+    OPEN_AI_GPT_120B = "openai/gpt-oss-120b"
 
 
 @dataclass(frozen=True)
 class ModelConfig:
-
     model: str
     temperature: float = 0
     top_p: float = 0.95
-    max_tokens: int = 512
+    max_completion_tokens: int = 2048
 
     # Optional vendor-specific settings
     reasoning: bool = True
@@ -23,8 +23,8 @@ class ModelConfig:
 
 
 DEFAULT_MODEL = ModelConfig(
-    model=SupportedModel.DEEPSEEK_FLASH.value,
-    temperature=0,
-    top_p=0.95,
-    max_tokens=512,
+    model=SupportedModel.OPEN_AI_GPT_120B.value,
+    temperature=1,
+    top_p=1,
+    max_completion_tokens=2048,
 )

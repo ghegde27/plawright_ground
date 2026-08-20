@@ -1,7 +1,8 @@
 import os
-import pytest
 from pathlib import Path
 from urllib.parse import urlparse
+
+import pytest
 
 from core.logger import Logger
 
@@ -9,22 +10,22 @@ log = Logger.get_logger(__name__)
 
 
 @pytest.fixture
-async def context(browser, config, ensure_login):
+def context(browser, config, ensure_login):
     worker_id = os.getenv("PYTEST_XDIST_WORKER", "main")
 
     # ---------------------------
     # Read config values
     # ---------------------------
-    har_flag        = config.get("capture_har", False)
-    trace_flag      = config.get("capture_trace", False)
-    video_flag      = config.get("capture_video", False)
+    har_flag = config.get("capture_har", False)
+    trace_flag = config.get("capture_trace", False)
+    video_flag = config.get("capture_video", False)
 
-    locale         = config.get("locale", "en-IN")
-    timezone       = config.get("timezone", "Asia/Kolkata")
-    permissions    = config.get("permissions", [])           # e.g ["geolocation","notifications"]
-    geolocation    = config.get("geolocation", None)         # e.g {"latitude":12.9,"longitude":77.6}
+    locale = config.get("locale", "en-IN")
+    timezone = config.get("timezone", "Asia/Kolkata")
+    permissions = config.get("permissions", [])  # e.g ["geolocation","notifications"]
+    geolocation = config.get("geolocation", None)  # e.g {"latitude":12.9,"longitude":77.6}
 
-    inject_cookie  = config.get("inject_cookie_consent", True)
+    inject_cookie = config.get("inject_cookie_consent", False)
 
     log.info(f"--- Context setup started [Worker: {worker_id}] ---")
     log.info(f"Locale          : {locale}")
@@ -72,7 +73,7 @@ async def context(browser, config, ensure_login):
     # ---------------------------
     # Create context
     # ---------------------------
-    ctx = await browser.new_context(**context_args)
+    ctx = browser.new_context(**context_args)
     log.info("Browser context created")
 
     # ---------------------------
@@ -80,7 +81,7 @@ async def context(browser, config, ensure_login):
     # ---------------------------
     if inject_cookie:
         domain = urlparse(config["base_url"]).hostname
-        await ctx.add_cookies([{
+        ctx.add_cookies([{
             "name": "cookieConsent",
             "value": "true",
             "domain": domain,
@@ -92,7 +93,9 @@ async def context(browser, config, ensure_login):
     # Start tracing if enabled
     # ---------------------------
     if trace_flag:
-        await ctx.tracing.start(screenshots=True, snapshots=True, sources=True)
+        ctx.tracing.start(screenshots=True, snapshots=True, sources=True)
+        ctx.on("request", lambda req: log.info(f"{req.method}>>{req.url}  "))
+        ctx.on("response", lambda res: log.info(f"{res.status} <<{res.url}"))
         log.info("Tracing started")
 
     yield ctx
@@ -102,9 +105,9 @@ async def context(browser, config, ensure_login):
     # ---------------------------
     if trace_flag:
         trace_path = f"allure-results/{worker_id}_trace.zip"
-        await ctx.tracing.stop(path=trace_path)
+        ctx.tracing.stop(path=trace_path)
         log.info(f"Tracing stopped → {trace_path}")
 
-    await ctx.close()
+    ctx.close()
     log.info(f"Context closed [Worker: {worker_id}]")
     log.info(f"--- Context teardown completed [Worker: {worker_id}] ---")

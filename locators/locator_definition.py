@@ -4,7 +4,6 @@ from typing import Any
 
 @dataclass(frozen=True)
 class LocatorDefinition:
-
     name: str
     strategy: str
     value: str

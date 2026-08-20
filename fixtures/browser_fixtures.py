@@ -1,7 +1,9 @@
 import json
 import os
+from pathlib import Path
+
 import pytest
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
 from core.logger import Logger
 
@@ -15,7 +17,8 @@ log = Logger.get_logger(__name__)
 def config(request):
     # Resolve environment
     env = request.config.getoption("--env") or os.getenv("ENV", "dev")
-    config_path = f"config/config.{env}.json"
+    PROJECT_ROOT = Path(__file__).parent.parent
+    config_path = f"{PROJECT_ROOT}/config/config.{env}.json"
 
     log.info(f"Loading config: {config_path}")
 
@@ -35,7 +38,7 @@ def config(request):
 # Browser Fixture
 # =====================================================
 @pytest.fixture(scope="function")
-async def browser(request, config):
+def browser(request, config):
     browser_cfg = config.get("browser", {})
 
     browser_type = browser_cfg.get("type", "chromium")
@@ -55,7 +58,7 @@ async def browser(request, config):
     log.info(f"Args           : {args}")
     log.info(f"Using CDP      : {use_cdp}")
 
-    async with async_playwright() as p:
+    with sync_playwright() as p:
         browser_launcher = getattr(p, browser_type)
 
         try:
@@ -65,13 +68,13 @@ async def browser(request, config):
                     raise ValueError("CDP mode enabled but --cdp-url not provided")
 
                 log.info(f"Attaching to existing browser at {cdp_url} ...")
-                browser = await browser_launcher.connect_over_cdp(cdp_url)
+                browser = browser_launcher.connect_over_cdp(cdp_url)
                 log.info("Attached to external browser session via CDP ✅")
 
             # --- Normal Launch Mode ---
             else:
                 log.info("Launching new browser instance...")
-                browser = await browser_launcher.launch(
+                browser = browser_launcher.launch(
                     headless=headless,
                     slow_mo=slowmo,
                     channel=channel,
@@ -88,7 +91,7 @@ async def browser(request, config):
         # --- Cleanup ---
         if not use_cdp:
             log.info("Closing browser session...")
-            await browser.close()
+            browser.close()
             log.info("Browser closed successfully 🧹")
         else:
             log.info("CDP mode — skipping browser close (external session)")

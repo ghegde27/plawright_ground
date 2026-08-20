@@ -1,17 +1,35 @@
-
 {
-  "base_url": "",
+  "base_url": "https://pharmeasy.in/",
   "capture_screenshot": true,
   "capture_trace": false,
   "capture_har": false,
   "capture_video": false,
-    "browser": {
+  "browser": {
     "type": "chromium",
     "headless": false,
     "slowMo": 50,
     "channel": "chrome",
-    "viewport": { "width": 1280, "height": 720 },
-    "args": ["--disable-blink-features=AutomationControlled"],
-    "permissions": ["clipboard-read", "clipboard-write"]
-  }
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "args": [
+      "--disable-blink-features=AutomationControlled"
+    ],
+    "permissions": [
+      "clipboard-read",
+      "clipboard-write"
+    ]
+  },
+  "locale": "en-IN",
+  "timezone": "Asia/Kolkata",
+  "permissions": [
+    "geolocation",
+    "notifications"
+  ],
+  "geolocation": {
+    "latitude": 12.9716,
+    "longitude": 77.5946
+  },
+  "inject_cookie_consent": false
 }
