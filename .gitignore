@@ -78,3 +78,4 @@ htmlcov/
 *.tmp
 *.swp
 *.swo
+!.env.example

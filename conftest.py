@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import pytest
@@ -7,8 +6,7 @@ from core.logger import Logger
 from llm.ai_locator_healer import AILocatorHealer
 from llm.client import LLMClient
 from llm.locator_generator import LocatorGenerator
-from llm.models import DEFAULT_MODEL
-from llm.provider import Provider
+from config.ai_config import AIConfig
 from locators.locator_repository import LocatorRepository
 from locators.page_repository import PageRepository
 
@@ -133,10 +131,10 @@ def locator_repository():
 # ==========================================================
 
 @pytest.fixture(scope="session")
-def locator_generator(llm):
-    return LocatorGenerator(
-        llm=llm
-    )
+def locator_generator(llm, ai_config):
+    if not ai_config.enabled or not ai_config.locator_generation_enabled:
+        return None
+    return LocatorGenerator(llm=llm)
 
 
 # ==========================================================
@@ -147,7 +145,14 @@ def locator_generator(llm):
 def ai_locator_healer(
         page,
         locator_generator,
+        ai_config,
 ):
+    if not (
+        ai_config.enabled
+        and ai_config.locator_healing_enabled
+        and locator_generator
+    ):
+        return None
     return AILocatorHealer(
         page=page,
         locator_generator=locator_generator,
@@ -183,9 +188,15 @@ def pytest_sessionfinish(
 
 
 @pytest.fixture(scope="session")
-def llm():
+def ai_config():
+    return AIConfig.from_env()
+
+
+@pytest.fixture(scope="session")
+def llm(ai_config):
+    if not ai_config.enabled:
+        return None
     return LLMClient(
-        provider=Provider.GROQ,
-        api_key=os.getenv(""),
-        model_config=DEFAULT_MODEL
+        provider=ai_config.provider,
+        model_config=ai_config.model,
     )

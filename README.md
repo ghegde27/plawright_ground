@@ -177,3 +177,38 @@ pytest -n 4
 ## Author
 
 Gopalkrishna Hegde
+
+## AI Provider Feature Flags
+
+The framework supports provider-neutral AI through `LLMClient`. Use feature flags to select Claude or retain the existing LLM provider.
+
+### Claude
+
+```bash
+export AI_ENABLED=true
+export AI_PROVIDER=claude
+export AI_MODEL=claude-sonnet-4
+export ANTHROPIC_API_KEY="<your-key>"
+export AI_LOCATOR_HEALING=true
+```
+
+### Existing LLM provider
+
+```bash
+export AI_ENABLED=true
+export LLM_PROVIDER=groq
+export GROQ_API_KEY="<your-key>"
+```
+
+`AI_PROVIDER` takes precedence over `LLM_PROVIDER`. If neither is set, the framework preserves its previous default of Groq.
+
+Capabilities can be independently disabled with:
+
+```bash
+AI_LOCATOR_GENERATION=false
+AI_LOCATOR_HEALING=false
+AI_TEST_GENERATION=false
+AI_FAILURE_ANALYSIS=false
+```
+
+Claude-specific code lives in `llm/providers/claude_provider.py`; framework consumers continue to use `LLMClient`.

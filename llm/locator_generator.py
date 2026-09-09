@@ -23,7 +23,7 @@ class LocatorGenerator:
     # GENERATE
     # ==========================================================
 
-    def generate(self, prompt: str) -> LocatorDefinition:
+    def generate(self, prompt: str, locator_name: str = "generated_locator") -> LocatorDefinition:
         if not prompt:
             raise ValueError("Locator generation prompt cannot be empty")
 
@@ -88,6 +88,7 @@ class LocatorGenerator:
             # --------------------------------------------------
 
             definition = LocatorDefinition(
+                name=locator_name,
                 strategy=strategy,
                 value=value,
                 options=options,

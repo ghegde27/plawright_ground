@@ -46,7 +46,10 @@ class AILocatorHealer:
         self.log.info(f"[AI-HEAL] Prompt created → length={len(prompt)}")
 
         # 4. Generate LocatorDefinition
-        definition = self.locator_generator.generate(prompt)
+        definition = self.locator_generator.generate(
+            prompt,
+            locator_name=locator_name,
+        )
         self.log.info(
             f"[AI-HEAL] Generated → strategy={definition.strategy} | "
             f"value={definition.value}"

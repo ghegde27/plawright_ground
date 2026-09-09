@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pytest pytest-asyncio pytest-playwright playwright allure-pytest
+          pip install pytest pytest-asyncio pytest-playwright playwright allure-pytest anthropic
           playwright install --with-deps
 
       - name: Run tests
