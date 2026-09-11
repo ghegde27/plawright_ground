@@ -111,3 +111,19 @@ def context(browser, config, ensure_login):
     ctx.close()
     log.info(f"Context closed [Worker: {worker_id}]")
     log.info(f"--- Context teardown completed [Worker: {worker_id}] ---")
+
+
+
+
+@pytest.fixture
+async def users(browser):
+    admin =  browser.new_context()
+    customer =  browser.new_context()
+
+    yield {
+        "admin": admin,
+        "customer": customer
+    }
+
+    admin.close()
+    customer.close()
